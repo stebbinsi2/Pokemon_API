@@ -56,22 +56,19 @@ defmodule Pokelixir do
     # Enum.reduce_while(1..100, 0, fn x, acc ->
     #  if x < 5, do: {:cont, acc + x}, else: {:halt, acc}
     # end)
-    Enum.reduce_while(0..199//20, [], fn offset, acc ->
-      Process.sleep(2500)
+    response =
+      Finch.build(:get, "#{@pokeapi_root_url}?offset=0&limit=20")
+      |> Finch.request!(MyFinch)
 
-      response =
-        Finch.build(:get, "#{@pokeapi_root_url}?offset=#{offset}&limit=20")
-        |> Finch.request!(MyFinch)
+    result = Jason.decode!(response.body)
 
-      result = Jason.decode!(response.body)
-
+    Enum.reduce_while(0..1, [], fn _offset, acc ->
+      # Process.sleep(2500)
       if result["results"] == [], do: {:halt, acc}, else: {:cont, acc ++ result["results"]}
     end)
     |> Enum.map(fn each ->
-      Process.sleep(2500)
-
+      # Process.sleep(2500)
       get(Map.get(each, "name"))
-      |> IO.inspect()
     end)
   end
 end
